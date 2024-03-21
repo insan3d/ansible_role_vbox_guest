@@ -49,7 +49,7 @@
     src: /tmp/VBoxGuestAdditions.iso
     fstype: iso9660
     opts: ro
-    state: ephemeral
+    state: mounted
 
 - name: Execute VirtualBox Guest Additions installation
   register: _vboxlinuxadditions_run
