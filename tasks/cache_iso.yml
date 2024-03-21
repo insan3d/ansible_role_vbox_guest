@@ -1,0 +1,21 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/tasks.json
+
+- name: Ensure files directory exists
+  ansible.builtin.file:
+    path: "{{ role_path }}/files"
+    state: directory
+    mode: "0755"
+
+- name: Download VirtualBox Guest Additions ISO sums
+  ansible.builtin.get_url:
+    url: "https://download.virtualbox.org/virtualbox/{{ virtualbox_guest_additions_version }}/SHA256SUMS"
+    dest: "{{ role_path }}/files/SHA256SUMS"
+    mode: "0644"
+
+- name: Download VirtualBox Guest Additions ISO
+  ansible.builtin.get_url:
+    url: "https://download.virtualbox.org/virtualbox/{{ virtualbox_guest_additions_version }}/VBoxGuestAdditions_{{ virtualbox_guest_additions_version }}.iso" # noqa: yaml
+    dest: "{{ role_path }}/files/VBoxGuestAdditions_{{ virtualbox_guest_additions_version }}.iso"
+    mode: "0644"
+    checksum: 'sha256:{{ lookup(''ansible.builtin.pipe'', ''grep iso '' + role_path + ''/files/SHA256SUMS | cut -d " " -f1'') }}'

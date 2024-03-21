@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/tasks.json
+
+- name: Setup manager node
+  run_once: true
+  delegate_to: localhost
+  block:
+    - name: Get latest VirtualBox version
+      when: virtualbox_guest_additions_version is not defined
+      ansible.builtin.set_fact:
+        virtualbox_guest_additions_version: "{{ lookup('url', 'https://download.virtualbox.org/virtualbox/LATEST.TXT') }}"
+
+    - name: Cache VirtualBox Guest Additions ISO on manager
+      ansible.builtin.include_tasks:
+        file: cache_iso.yml
+
+- name: Check current VirtrualBox Guest Additions version
+  failed_when: false
+  changed_when: "'kernel modules ' + virtualbox_guest_additions_version not in _sbin_rcvboxadd_status_kernel.stdout"
+  register: _sbin_rcvboxadd_status_kernel
+  ansible.builtin.command:
+    cmd: /sbin/rcvboxadd status-kernel
+
+- name: Install VirtrualBox Guest Additions
+  when: "'kernel modules ' + virtualbox_guest_additions_version not in _sbin_rcvboxadd_status_kernel.stdout"
+  ansible.builtin.include_tasks:
+    file: install_vboxguest.yml

@@ -1,0 +1,31 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/tasks.json
+
+- name: Uninstall build dependencies
+  with_items: "{{ _installed_builddeps.results }}"
+  when: item.changed
+  loop_control:
+    label: "{{ item.item }}"
+
+  ansible.builtin.apt:
+    name: "{{ item.item }}"
+    state: absent
+
+- name: Delete VirtualBox Guest Additions ISO
+  ansible.builtin.file:
+    path: /tmp/VBoxGuestAdditions.iso
+    state: absent
+
+- name: Remove temporary mount
+  notify: Remove temporary mountpoint
+  ansible.posix.mount:
+    path: /mnt/vboxguest_iso
+    state: unmounted
+
+- name: Remove temporary mountpoint
+  ansible.builtin.file:
+    path: /mnt/vboxguest_iso
+    state: absent
+
+- name: Reboot VM just in case
+  ansible.builtin.reboot:

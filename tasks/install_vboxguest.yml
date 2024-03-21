@@ -1,0 +1,60 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/tasks.json
+
+- name: Install runtime dependencies
+  with_items:
+    - dbus
+    - dbus-user-session
+    - libx11-6
+    - libxt6
+    - libxext6
+    - libxmu6
+
+  ansible.builtin.apt:
+    cache_valid_time: "{{ 60 * 60 * 24 }}"
+    name: "{{ item }}"
+    state: present
+
+- name: Install build dependencies
+  register: _installed_builddeps
+  notify: Uninstall build dependencies
+
+  with_items:
+    - build-essential
+    - dkms
+    - linux-headers-{{ ansible_kernel }}
+
+  ansible.builtin.apt:
+    cache_valid_time: "{{ 60 * 60 * 24 }}"
+    name: "{{ item }}"
+    state: present
+
+- name: Ensure DBus started
+  ansible.builtin.systemd:
+    name: dbus
+    state: started
+
+- name: Copy VirtualBox Guest Additions ISO
+  notify: Delete VirtualBox Guest Additions ISO
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/VBoxGuestAdditions_{{ virtualbox_guest_additions_version }}.iso"
+    dest: /tmp/VBoxGuestAdditions.iso
+    mode: "0644"
+
+- name: Mount Guest Additions ISO
+  notify: Remove temporary mount
+
+  ansible.posix.mount:
+    path: /mnt/vboxguest_iso
+    src: /tmp/VBoxGuestAdditions.iso
+    fstype: iso9660
+    opts: ro
+    state: ephemeral
+
+- name: Execute VirtualBox Guest Additions installation
+  register: _vboxlinuxadditions_run
+  failed_when: _vboxlinuxadditions_run.rc not in [0, 2]
+  changed_when: "'kernel modules ' + virtualbox_guest_additions_version in _vboxlinuxadditions_run.stdout"
+  notify: Reboot VM just in case
+  ansible.builtin.shell:
+    cmd: /mnt/vboxguest_iso/VBoxLinuxAdditions.run --quiet --accept --noprogress ; /sbin/rcvboxadd status-kernel
