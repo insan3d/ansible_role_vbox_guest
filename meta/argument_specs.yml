@@ -1,0 +1,16 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/role-arg-spec.json
+
+argument_specs:
+  main:
+    short_description: Installs VirtualBox Guest Additions
+    description: >-
+      This role will cache VBox Guest Additions ISO on Ansible controller host and install
+      kernel modules on targets. Intended to be used on Debian-based distros only.
+
+    author: Alexander Pozlevich
+    options:
+      virtualbox_guest_additions_version:
+        description: Optional version of VBox GA ISO file to download (latest will be used if not specified)
+        type: str
+        required: false
