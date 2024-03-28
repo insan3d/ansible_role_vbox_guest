@@ -1,0 +1,17 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta.json
+
+galaxy_info:
+  role_name: vbox_guest
+  author: insan3d
+  license: "license (BSD, MIT)"
+
+  min_ansible_version: "2.16"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+
+  description: >-
+    This role will cache VBox Guest Additions ISO on Ansible controller host and install
+    kernel modules on targets. Intended to be used on Debian-based distros only.
