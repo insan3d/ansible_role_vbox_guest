@@ -20,7 +20,7 @@
   notify: Remove temporary mountpoint
   ansible.posix.mount:
     path: /mnt/vboxguest_iso
-    state: unmounted
+    state: absent
 
 - name: Remove temporary mountpoint
   ansible.builtin.file:
